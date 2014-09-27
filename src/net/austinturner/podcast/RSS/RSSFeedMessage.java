@@ -7,40 +7,48 @@ package net.austinturner.podcast.RSS;
 public class RSSFeedMessage {
 
 	private String title;
-	private String description;
+	//private String description;
 	private String link;
 	private String source;
 	private String comments;
 	private String pubDate;
 	private String guid;
 	private String author;
-	private String enclosure; // Still need to figure out how to get attributes out after enclosure 
+	private String enclosure;
 	private String url;
 	private String length;
 	private String type;
+
+	private String subtitle;
+	private String summary;
+	private String keywords;
+	private String duration;
 	//<enclosure url="http://www.controlledburnbbq.com/podcast/episode_05.mp3" length="3894544" type="audio/mpeg" />
 	
 	@Override
 	public String toString(){
-		return "FeedMessage [title=" + title + 
-				", description=" + description + 
-				", link=" + link + 
+		return "FeedMessage [" +
+				"title=" + title +
+				", subtitle=" + subtitle +
+				", summary=" + summary +
+				", keywords=" + keywords +
+				", duration=" + duration +
+				", link=" + link +
 				", source=" + source +
-				", comments=" + comments + 
-				", pubDate=" + pubDate + 
-				", guid=" + guid + 
-				", author=" + author + 
-				", url=" + url + 
-				", length=" + length + 
-				", type=" + type + 
+				", comments=" + comments +
+				", pubDate=" + pubDate +
+				", guid=" + guid +
+				", author=" + author +
+				", url=" + url +
+				", length=" + length +
+				", type=" + type +
 				"]";
 	}
 	
 	public String getMessageText(){
 		return  "<html><br><b><u>Title:</b></u> " + title + "<br>" +
-				"<b><u>Description:</b></u> " + returnWithBr(description) + "<br>" +
-				"<b><u>Release Date:</b></u> " + pubDate +"<br><br></html>";
-				
+				"<b><u>Description:</b></u> " + returnWithBr(summary) + "<br>" +
+				"<b><u>Release Date:</b></u> " + pubDate +"<br><br></html>";	
 	}
 	
 	/**
@@ -109,12 +117,6 @@ public class RSSFeedMessage {
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	public String getDescription() {
-		return description;
-	}
-	public void setDescription(String description) {
-		this.description = description;
-	}
 	public String getLink() {
 		return link;
 	}
@@ -174,6 +176,38 @@ public class RSSFeedMessage {
 	}
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public String getSubtitle() {
+		return subtitle;
+	}
+
+	public void setSubtitle(String subtitle) {
+		this.subtitle = subtitle;
+	}
+
+	public String getSummary() {
+		return summary;
+	}
+
+	public void setSummary(String summary) {
+		this.summary = summary;
+	}
+
+	public String getKeywords() {
+		return keywords;
+	}
+
+	public void setKeywords(String keywords) {
+		this.keywords = keywords;
+	}
+
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
 	}
 	
 	

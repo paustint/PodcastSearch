@@ -36,9 +36,19 @@ public class RSSFeedParser {
 	  static final String ENCLOSURE = "enclosure";
 	  static final String LANGUAGE = "language";
 	  static final String IMAGE = "image";
+	  static final String COPYRIGHT = "copyright";
+	  static final String SUBTITLE = "subtitle";
+	  static final String SUMMARY = "summary";
+	  static final String NAME = "name";
+	  static final String EMAIL = "email";
+	  static final String CATEGORY = "category";
+	  static final String KEYWORDS = "keywords";
+	  static final String DURATION = "duration";
+	  // Part of API
 	  static final String TOTAL_RESULTS = "totalResults";
 	  static final String START_INDEX = "startIndex";
 	  static final String ITEMS_PER_PAGE = "itemsPerPage";
+	  
 	  private URL url;
 
 	private String generator = "generator";
@@ -93,6 +103,15 @@ public class RSSFeedParser {
 			String encLength = "";
 			String encType = "";
 			String image = "";
+			String copyright = "";
+			String subtitle = "";
+			String summary = "";
+			String name = "";
+			String email = "";
+			String category = "";
+			String keywords = "";
+			String duration = "";
+			
 			
 		    String totalResults = "";
 		    String startIndex = "";
@@ -112,12 +131,12 @@ public class RSSFeedParser {
 					case ITEM:
 						if (isFeedHeader){
 							isFeedHeader = false;
-							feed = new RSSFeed(title, link, description, pubDate, language, image);
-							if (!totalResults.equals("")){//See if result has totalResults attribute set
+							feed = new RSSFeed(title, link, description, pubDate, language, image,
+									author, copyright, subtitle, summary, name, email, category);
+							if (!totalResults.equals("")){//See if result has totalResults attribute set - if so it must be PodcastSearch API feed
 								feed.setTotalResults(totalResults);
 								feed.setStartIndex(startIndex);
 								feed.setItemsPerPage(itemsPerPage);
-								
 							}
 						}
 						event = eventReader.nextEvent();
@@ -149,8 +168,9 @@ public class RSSFeedParser {
 					case LANGUAGE:
 						language = getCharacterData(event, eventReader);
 						break;
-					case CHANNEL:
-						channel = getCharacterData(event, eventReader);
+					case CHANNEL:						
+						//channel = getCharacterData(event, eventReader);
+						break;
 					case LINK:
 						link = getCharacterData(event, eventReader);
 						break;
@@ -169,6 +189,7 @@ public class RSSFeedParser {
 					case IMAGE:
 						startElement = event.asStartElement();
 						Attribute imageAttr = startElement.getAttributeByName(new QName("href"));
+						//Attribute imageAttr = null;
 						if(imageAttr != null){
 							image = imageAttr.getValue();
 						}
@@ -182,28 +203,59 @@ public class RSSFeedParser {
 					case ITEMS_PER_PAGE:
 						itemsPerPage = getCharacterData(event, eventReader);
 						break;
-						
+					case COPYRIGHT:
+						copyright = getCharacterData(event, eventReader);
+						break;
+					case SUBTITLE:
+						subtitle = getCharacterData(event, eventReader);
+						break;
+					case SUMMARY:
+						summary = getCharacterData(event, eventReader);
+						break;
+					case NAME:
+						name = getCharacterData(event, eventReader);
+						break;
+					case EMAIL:
+						email = getCharacterData(event, eventReader);
+						break;
+					case CATEGORY:
+						category = getCharacterData(event, eventReader);
+						break;
+					case KEYWORDS:
+						keywords = getCharacterData(event, eventReader);
+						break;
+					case DURATION:
+						duration = getCharacterData(event, eventReader);
 					case SOURCE:
+						startElement = event.asStartElement();
+						Attribute urlAttr = startElement.getAttributeByName(new QName("url"));
+						if(urlAttr != null){
+							encUrl = urlAttr.getValue();
+						}
 						source = getCharacterData(event, eventReader);
 					} 
 				} else if(event.isEndElement()){
-					if (event.asEndElement().getName().getLocalPart() == (ITEM)){
-						RSSFeedMessage message = new RSSFeedMessage();
-						message.setTitle(title);
-						message.setSource(source);
-						message.setLink(link);
-						message.setDescription(description);
-						message.setAuthor(author);
-						message.setPubDate(pubDate);
-						message.setComments(comments);
-						message.setGuid(guid);
-						message.setUrl(encUrl);
-						message.setLength(encLength);
-						message.setType(encType);
-						feed.getMessages().add(message);
-						event = eventReader.nextEvent();
-						continue;
-					}
+						if (event.asEndElement().getName().getLocalPart() == (ITEM)){
+							RSSFeedMessage message = new RSSFeedMessage();
+							message.setTitle(title);
+							message.setSource(source);
+							message.setLink(link);
+							message.setAuthor(author);
+							message.setPubDate(pubDate);
+							message.setComments(comments);
+							message.setGuid(guid);
+							message.setUrl(encUrl);
+							message.setLength(encLength);
+							message.setType(encType);
+							message.setSubtitle(subtitle);
+							message.setSummary(summary);
+							if (summary.equals("")) message.setSummary(description);
+							message.setKeywords(keywords);
+							message.setDuration(duration);
+							feed.getMessages().add(message);
+							event = eventReader.nextEvent();
+							continue;
+						}
 				}
 			}
 			

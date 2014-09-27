@@ -38,19 +38,8 @@ public class PodcastGUI {
 	 */
 	public static void main(String[] args) {
 		
-		String APIkey = "";
+		String APIkey = args[0];
 		
-		try {
-			FileReader fr = new FileReader("api.key");
-			BufferedReader APIreader = new BufferedReader(fr);
-			APIkey = APIreader.readLine();
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 		final String APIKey = APIkey;
 		EventQueue.invokeLater(new Runnable() {
@@ -77,11 +66,13 @@ public class PodcastGUI {
 	 */
 	private void initialize(String APIKey) {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 1367, 691);
+		frame.setBounds(100, 100, 1367, 800);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
 		searchPanel = new SearchPanel(APIKey);
+		searchPanel.setLocation(0, 41);
+		searchPanel.setSize(1351, 720);
 		frame.getContentPane().add(searchPanel);
 
 	}

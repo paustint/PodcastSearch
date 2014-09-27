@@ -44,7 +44,7 @@ public class TestCase {
 				System.out.println(m.getMessageText());
 				
 			}
-			String temp = feed.getMessages().get(0).getDescription().substring(84, 85);
+			String temp = feed.getMessages().get(0).getSummary().substring(84, 85);
 
 			//System.out.println(feed.getMessages());
 			

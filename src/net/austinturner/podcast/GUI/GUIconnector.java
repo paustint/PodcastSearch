@@ -14,16 +14,11 @@ public class GUIconnector {
 	private RSSFeedParser parser;
 	private RSSFeed feed;
 	private List<RSSFeedMessage> messages;
+	private final boolean DEBUG = true;
 	
 	public GUIconnector(String APIkey) throws Exception{
 			dp = new DigitalPodcast(APIkey);
 			dp.setFormat(2);
-			//parser = new RSSFeedParser(dp.getQuery());
-			//feed = parser.readFeed();
-			//messages = feed.getMessages();
-			//parser = new RSSFeedParser(messages.get(2).getSource());
-			//feed = parser.readFeed();
-			//messages = feed.getMessages();
 	}
 	public static DigitalPodcast getActiveDP(){
 		return dp;
@@ -43,6 +38,16 @@ public class GUIconnector {
 	public List<RSSFeedMessage> getMessages(){
 		return messages;
 	}
+	/**
+	 * Overloaded - allow smaller result of messages to be returned if desired<br>
+	 * @param start
+	 * @param numResults
+	 * @return
+	 */
+	public List<RSSFeedMessage> getMessages(int start, int numResults){
+		return messages.subList(start, numResults+1);
+	}
+	
 	
 	public void setParameters(String keywords, int numResults, int sort, int contentFilter, int searchsource, int start){
 		try {
@@ -55,6 +60,8 @@ public class GUIconnector {
 			parser = new RSSFeedParser(dp.getQuery());
 			feed = parser.readFeed();
 			messages = feed.getMessages();
+			if (messages.get(0).getLink().equals("http://www.digitalpodcast.com/feeds/featured")) messages.remove(0);
+			debug();
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -65,6 +72,23 @@ public class GUIconnector {
 	}
 
 	/**
+	 * This method is called when the RSS URL is known, without connecting to an API service<br>
+	 * @param rssFeedUrl
+	 */
+	public boolean setNewSearch(String rssFeedUrl){
+		try {
+			parser = new RSSFeedParser(rssFeedUrl);
+			feed = parser.readFeed();
+			messages = feed.getMessages();
+			if (messages.get(0).getLink().equals("http://www.digitalpodcast.com/feeds/featured")) messages.remove(0);
+			debug(rssFeedUrl);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	/**
 	 * Set start and refresh query results
 	 * @param start
 	 */
@@ -74,6 +98,8 @@ public class GUIconnector {
 			parser = new RSSFeedParser(dp.getQuery());
 			feed = parser.readFeed();
 			messages = feed.getMessages();
+			if (messages.get(0).getLink().equals("http://www.digitalpodcast.com/feeds/featured")) messages.remove(0);
+			debug();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -81,6 +107,18 @@ public class GUIconnector {
 		
 	}
 	
+	private void debug(String query){
+		if(DEBUG){
+			System.out.println(feed);
+			System.out.println(query);
+			for (RSSFeedMessage m : messages){
+				System.out.println(m);
+			}
+		}
+	}
+	private void debug(){
+			debug(dp.getQuery());
+	}
 	
 	
 	

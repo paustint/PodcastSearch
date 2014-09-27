@@ -10,18 +10,24 @@ import java.util.List;
 
 public class RSSFeed {
 	
-	private String title = "title";
-	private String link = "link";
-	private String description = "description";
-	private String pubDate = "pubDate";
-	private String language = "language";
-	private String image = "image";
-	
+	private String title;
+	private String link;
+	private String description;
+	private String pubDate;
+	private String language;
+	private String image;
+	private String author;
+	private String copyright;
+	private String subtitle;
+	private String summary;
+	private String name;
+	private String email;
+	private String category;
 	
 	//Still need to figure these out (only exist on main API search, maybe have flag or alternate constructor)
-	private String totalResults = "podcastSearch:totalResults";
-	private String startIndex = "podcastSearch:startIndex";
-	private String itemsPerPage = "podcastSearch:itemsPerPage";
+	private String totalResults = "";
+	private String startIndex = "";
+	private String itemsPerPage = "";
 	
 	final List<RSSFeedMessage> entries = new ArrayList<RSSFeedMessage>();
 	
@@ -33,14 +39,21 @@ public class RSSFeed {
 	 * @param pubDate
 	 * @param language
 	 */
-	public RSSFeed(String title, String link, String description, String pubDate, String language, String image){
+	public RSSFeed(String title, String link, String description, String pubDate, String language, String image,
+			String author, String copyright, String subtitle, String summary, String name, String email, String category){
 		this.title = title;
 		this.link = link;
 		this.description = description;
 		this.pubDate = pubDate;
 		this.language = language;
 		this.image = image;
-
+		this.author = author;
+		this.copyright = copyright;
+		this.subtitle = subtitle;
+		this.summary = summary;
+		this.name = name;
+		this.email = email;
+		this.category = category;
 	}
 	public List<RSSFeedMessage> getMessages(){
 		return entries;
@@ -65,8 +78,21 @@ public class RSSFeed {
 		return image;
 	}
 	public String toString(){
-		return "Feed [title=" + title + ", link=" + link + ", description=" + description + ", pubdate=" 
-	+ pubDate + ", language=" + language + ", image="+ image +"]";
+		return "Feed [" + 
+				"title=" + title +
+				", link=" + link +
+				", description=" + description +
+				", pubDate=" + pubDate +
+				", language=" + language +
+				", image=" + image +
+				", author=" + author +
+				", copyright=" + copyright +
+				", subtitle=" + subtitle +
+				", summary=" + summary +
+				", name=" + name +
+				", email=" + email +
+				", category=" + category +
+				"]";
 	}
 	//Getters and setters for feed info.  This is only used on initial API search, and all queries do not have page numbers
 	public String getTotalResults() {
@@ -86,6 +112,48 @@ public class RSSFeed {
 	}
 	public void setItemsPerPage(String itemsPerPage) {
 		this.itemsPerPage = itemsPerPage;
+	}
+	public String getAuthor() {
+		return author;
+	}
+	public void setAuthor(String author) {
+		this.author = author;
+	}
+	public String getCopyright() {
+		return copyright;
+	}
+	public void setCopyright(String copyright) {
+		this.copyright = copyright;
+	}
+	public String getSubtitle() {
+		return subtitle;
+	}
+	public void setSubtitle(String subtitle) {
+		this.subtitle = subtitle;
+	}
+	public String getSummary() {
+		return summary;
+	}
+	public void setSummary(String summary) {
+		this.summary = summary;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getCategory() {
+		return category;
+	}
+	public void setCategory(String category) {
+		this.category = category;
 	}
 
 	
