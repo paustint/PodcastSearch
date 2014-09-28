@@ -336,6 +336,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		rdbtnAdult.setFont(new Font("Aharoni", Font.PLAIN, 14));
 		
 		txtSearchQuery = new JTextField();
+		txtSearchQuery.addKeyListener(this);
 		txtSearchQuery.setFont(new Font("Aharoni", Font.PLAIN, 14));
 		txtSearchQuery.setBounds(176, 11, 320, 32);
 		txtSearchQuery.setColumns(10);
@@ -426,6 +427,10 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		lblDownloadsInProgress.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		lblDownloadsInProgress.setBounds(1061, 689, 300, 23);
 		add(lblDownloadsInProgress);
+	}
+	
+	public JButton getSearchButton(){
+		return btnSearch;
 	}
 
 	
@@ -815,6 +820,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 	 * 
 	 */
 	public void keyPressed(KeyEvent e) {
+		
 		if(DEBUG) System.out.println(e.getKeyCode());
 		//if (e.getKeyCode() == 32 || e.getKeyCode() == 10){ // Check for space bar or enter key - does same as btnViewEpisodes
 			//int selectedResult = resultsTable.getSelectedRow();

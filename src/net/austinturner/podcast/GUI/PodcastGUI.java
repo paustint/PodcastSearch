@@ -114,6 +114,7 @@ public class PodcastGUI {
 			
 			searchPanel = new SearchPanel(GUIcon);
 			tabbedPane.addTab("Search", null, searchPanel, null);
+			frame.getRootPane().setDefaultButton(searchPanel.getSearchButton()); // allows enter button to be mapped to search button
 			
 			downloadPanel = new DownloadPanel(GUIcon);
 			tabbedPane.addTab("Downloads", null, downloadPanel, null);

@@ -30,7 +30,8 @@ public class GUIconnector {
 	private ExecutorService pool;
 	
 	private int downloadCount = 0;
-	
+	private boolean saveDownloadHistory = true;
+	private boolean SaveSearchHistory = true;
 	private final boolean DEBUG = true;
 	
 	/**
@@ -44,6 +45,19 @@ public class GUIconnector {
 		dp.setFormat(2);
 		setDBCon();// Create connection to DB
 	}
+	/**
+	 * Disable download history<br>
+	 * @param APIkey
+	 * @param pool
+	 * @param saveDownloadHistory
+	 * @throws Exception
+	 */
+	public GUIconnector(String APIkey, ExecutorService pool, boolean saveDownloadHistory, boolean SaveSearchHistory) throws Exception{
+		this(APIkey, pool);
+		this.saveDownloadHistory = saveDownloadHistory;
+	}
+	
+	
 	public static DigitalPodcast getActiveDP(){
 		return dp;
 	}
@@ -154,10 +168,13 @@ public class GUIconnector {
 	 */
 	public int downloadEpisode(URL website, String feedName, String fileName, String fileSize){
 		 Future f = pool.submit(new DownloadTask(website, feedName, fileName, fileSize), this);
+		 
 		 downloadCount ++;
 		 if(DEBUG) System.out.println("Downloads in progress: " + downloadCount);
+		 //System.out.println(f.hashCode());
 		 while(!f.isDone()){ // Keep looping until download has finished
 		 }
+		 //System.out.println(f.hashCode());
 		 System.out.println("done");
 		 downloadCount --;
 		 if(DEBUG) System.out.println("Downloads in progress: " + downloadCount);
@@ -212,10 +229,15 @@ public class GUIconnector {
 		putSQLvalue(key, value, "TEXT");
 	}
 	public int executSearchSQL(){
-		int rowsReturned = sql.SQLInsert(sql.createInsert(DB_SEARCH, sqlColumns.toArray(new String[sqlColumns.size()]), sqlValues));
-		sqlColumns.clear();
-		if(DEBUG) System.out.println("Rows Returned: " + rowsReturned);
-		return rowsReturned;
+		if (SaveSearchHistory){
+			int rowsReturned = sql.SQLInsert(sql.createInsert(DB_SEARCH, sqlColumns.toArray(new String[sqlColumns.size()]), sqlValues));
+			sqlColumns.clear();
+			if(DEBUG) System.out.println("Rows Returned: " + rowsReturned);
+			return rowsReturned;
+		} else{
+			return -2;
+		}
+		
 	}
 
 	/**
@@ -245,6 +267,13 @@ public class GUIconnector {
 		putSQLvalue("STARTINDEX", rssFeed.getStartIndex(), "INT");
 		putSQLvalue("ITEMSPERPAGE", rssFeed.getItemsPerPage(), "INT");
 		return executSearchSQL();
+	}
+	
+	/**
+	 * 
+	 */
+	public void clearSearchHistory(){
+		//TODO
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////DEBUG//////////////////////////////////////////////////////////////////
