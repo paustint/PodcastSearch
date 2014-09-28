@@ -123,7 +123,8 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 	private JLabel lblStatusBar;
 	
 	
-	private final boolean DEBUG = false;
+	private final boolean DEBUG = true;
+	private JLabel lblDownloadStatus;
 	
 	/**
 	 * Create the panel.
@@ -412,30 +413,47 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		lblStatusBar.setBounds(0, 689, 1331, 23);
 		lblStatusBar.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		add(lblStatusBar);
+		
+		lblDownloadStatus = new JLabel("");
+		lblDownloadStatus.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblDownloadStatus.setBounds(10, 655, 300, 23);
+		add(lblDownloadStatus);
 	}
+
+	
+	/////////////////////////////////////////////////////////////////SEARCH////////////////////////////////////////////////////////////////////
 	/**
-	 * Perform search query and instantiate the result panel
+	 * Perform search query, clear label to blank image, save query to SQLite<br>
 	 * @param keywords
 	 * @param numResults
 	 * @param sort
 	 * @param contentFilter
 	 * @param searchsource
 	 */
-	public void search(int start, String keywords, int numResults, int sort, int contentFilter, int searchsource){
-		try {
-			
-			GUIcon = new GUIconnector(APIKey);
-			GUIcon.setParameters(keywords, numResults, sort, contentFilter, searchsource, start);
-			lblImage.setIcon(new ImageIcon("blank300x300.jpg"));
-			resultsTable.setModel(setTable(GUIcon.getMessages()));
-			updateColumnWidths(resultsTable);
-			updateResultLabel(GUIcon.getFeed().getStartIndex(), numResults, GUIcon.getFeed().getTotalResults());
-			setPrevNextButtons(GUIcon.getFeed().getStartIndex(), numResults, GUIcon.getFeed().getTotalResults());
-			updateStatusBar(true);
-		} catch (Exception e) {
-			updateStatusBar(false, "Search was not successful.");
-			//e.printStackTrace();
-		}
+	public void search(final int start, final String keywords, final int numResults, final int sort, final int contentFilter, final int searchsource){
+
+		Thread searchThread = new Thread(){
+			 public void run() {	
+				 try {
+						updateStatusBar(false, "Searching...");
+						GUIcon = new GUIconnector(APIKey);
+						GUIcon.setParameters(keywords, numResults, sort, contentFilter, searchsource, start);
+						GUIcon.getFeed().setFolderName("");
+						searchHistoryInstert();
+						lblImage.setIcon(new ImageIcon("blank300x300.jpg"));
+						resultsTable.setModel(setTable(GUIcon.getMessages()));
+						updateColumnWidths(resultsTable);
+						updateResultLabel(GUIcon.getFeed().getStartIndex(), numResults, GUIcon.getFeed().getTotalResults());
+						setPrevNextButtons(GUIcon.getFeed().getStartIndex(), numResults, GUIcon.getFeed().getTotalResults());
+						updateStatusBar(true);
+					} catch (Exception e) {
+						updateStatusBar(false, "Search was not successful.");
+						e.printStackTrace();
+					}
+			 }
+		};
+		searchThread.start();
+
 	}
 	
 
@@ -443,84 +461,80 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 	 * This method is used after initial search when user wants to see episodes within a library<Br>
 	 * @param selectedResult
 	 */
-	public void viewEpisode(int selectedResult){
-		int selectedRow = resultsTable.getSelectedRow();
-		if (selectedRow >= 0){
-			try {
-				String[] colHeaders = {"Title", "SubTitle", "PubDate", "Length"};
-				System.out.println(GUIcon.getMessages().get(selectedResult).getUrl());
-				if (GUIcon.setNewSearch(GUIcon.getMessages().get(selectedResult).getUrl())){
-					ImageIcon ic = new ImageIcon(new URL(GUIcon.getFeed().getImage()));
-					Image im = ic.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
-					lblImage.setIcon(new ImageIcon(im));
-					resultsTable.setModel(setTable(colHeaders, GUIcon.getMessages()));
-					updateColumnWidths(resultsTable);
-					updateResultLabel(0, GUIcon.getMessages().size(), GUIcon.getMessages().size());
-					setPrevNextButtons(0, GUIcon.getMessages().size(), GUIcon.getMessages().size());
-					updateStatusBar(true);
-				} else{
-					updateStatusBar(false, "Episode could not be found. URL: " + GUIcon.getMessages().get(selectedResult).getUrl());
-				}
-				
-
-			} catch (Exception e) {
-				updateStatusBar(false, "Episode could not be found. URL: " + GUIcon.getMessages().get(selectedResult).getUrl());
-				if(DEBUG)e.printStackTrace();
-			}
-		}
-	}
-	/**
-	 * If URL could not be found, call method with URL included<br>
-	 * @param b
-	 * @param url
-	 */
-	private void updateStatusBar(boolean b, String url) {
-		if (!b){
-			lblStatusBar.setText(url);
-		}
-		else{
-			lblStatusBar.setText("");
-		}
+	public void viewEpisode(final int selectedResult){
+		Thread viewEpisodeThread = new Thread(){
+			 public void run() {
+				 int selectedRow = resultsTable.getSelectedRow();
+				 if (selectedRow >= 0){
+						try {
+							updateStatusBar(false, "Accessing Podcast...");
+							String[] colHeaders = {"Title", "SubTitle", "PubDate", "Length"};
+							if(DEBUG)System.out.println(GUIcon.getMessages().get(selectedResult).getUrl());
+							String folderName = GUIcon.getMessages().get(selectedResult).getTitle(); // Name on actual feed was often wacked out, using name from this feed message and passing to new feed
+							
+							if (GUIcon.setNewSearch(GUIcon.getMessages().get(selectedResult).getUrl())){
+								GUIcon.getFeed().setFolderName(folderName);
+								ImageIcon ic = new ImageIcon(new URL(GUIcon.getFeed().getImage()));
+								Image im = ic.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+								lblImage.setIcon(new ImageIcon(im));
+								resultsTable.setModel(setTable(colHeaders, GUIcon.getMessages()));
+								updateColumnWidths(resultsTable);
+								updateResultLabel(0, GUIcon.getMessages().size(), GUIcon.getMessages().size());
+								setPrevNextButtons(0, GUIcon.getMessages().size(), GUIcon.getMessages().size());
+								updateStatusBar(true);
+							} else{
+								updateStatusBar(false, "Episode could not be found. URL: " + GUIcon.getMessages().get(selectedResult).getUrl());
+							}
+						} catch (Exception e) {
+							updateStatusBar(false, "Episode could not be found. URL: " + GUIcon.getMessages().get(selectedResult).getUrl());
+							if(DEBUG)e.printStackTrace();
+						}
+					}
+			 	}
+			 };
+			 viewEpisodeThread.start();
+		
 	}
 	
 	/**
-	 * Reset status bar if request is successful<br>
-	 * @param b
-	 */
-	private void updateStatusBar(boolean b){
-		updateStatusBar(true, "");
-	}
-	
-	/**
-	 * 
+	 * Download selected podcast<br>
 	 */
 	private void downloadEpisode(){
 		//TODO Make this run in a separate thread, have a progress bar/notification, and kill thread when done.
 		if (resultsTable.getSelectedRow() >= 0){
-			String feedName = GUIcon.getFeed().getTitle(); //TODO titles are jacked up sometimes
-			
-			Boolean newFolder = (new File("PodcastLibrary/" + feedName)).mkdir();
-			
-				try {
-					URL website;
-					website = new URL(GUIcon.getMessages().get(resultsTable.getSelectedRow()).getUrl());
-					String filename = website.toString().substring(website.toString().lastIndexOf('/')+1, website.toString().length());
-					System.out.println("Filename: " + filename);
-					updateStatusBar(false, "Download Started.....");
-					ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-					FileOutputStream fos = new FileOutputStream("PodcastLibrary/" + feedName + "/"+ filename);
-					fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-					updateStatusBar(false, "Download successful");
-				} catch (MalformedURLException e) {
-					updateStatusBar(false, "Episode could not be found. URL: " + GUIcon.getMessages().get(resultsTable.getSelectedRow()).getUrl());
-					if(DEBUG)e.printStackTrace();
-				} catch (IOException e) {
-					updateStatusBar(false, "Error writing file to disk.");
-					if(DEBUG)e.printStackTrace();
-				}
+			// Spin up new thread to complete the download
+			Thread downloadThread = new Thread(){
+				 public void run() {
+					 String feedName = GUIcon.getFeed().getFolderName(); //TODO titles are jacked up sometimes
+					 Boolean newFolder = (new File("PodcastLibrary/" + feedName)).mkdir();
+						try {
+							URL website;
+							String filesize = "";
+							website = new URL(GUIcon.getMessages().get(resultsTable.getSelectedRow()).getUrl());
+							String filename = website.toString().substring(website.toString().lastIndexOf('/')+1, website.toString().length());
+							if(DEBUG)System.out.println("Filename: " + filename);
+							if (!GUIcon.getMessages().get(resultsTable.getSelectedRow()).getLength().equals("")){
+								double fs = Integer.parseInt((GUIcon.getMessages().get(resultsTable.getSelectedRow()).getLength())) / 1000000.0;
+								filesize = "(" + (Double.toString(fs).substring(0, (Double.toString(fs).indexOf('.') + 3))) + " MB)"; // Get truncated 2 decimal point size of file
+							}
+							lblDownloadStatus.setText("Download Started.... ("+filesize+" MB)");
+							ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+							FileOutputStream fos = new FileOutputStream("PodcastLibrary/" + feedName + "/"+ filename);
+							fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+							lblDownloadStatus.setText("Download successful!");
+						} catch (MalformedURLException e) {
+							lblDownloadStatus.setText("Episode could not be found. URL: " + GUIcon.getMessages().get(resultsTable.getSelectedRow()).getUrl());
+							if(DEBUG)e.printStackTrace();
+						} catch (IOException e) {
+							lblDownloadStatus.setText("Error writing file to disk.");
+							if(DEBUG)e.printStackTrace();
+						}
+						
+				 }
+			};
+			downloadThread.start();
 			
 
-			
 		}
 	}
 	
@@ -532,7 +546,6 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		TableColumn column = null;
 		for (int i = 0; i < table.getColumnCount(); i++) {
 		    column = table.getColumnModel().getColumn(i);
-		    System.out.println(column.getHeaderValue().toString());
 		    if (column.getHeaderValue().toString().equals("Title")) {
 		        column.setPreferredWidth(200); //third column is bigger
 		    } else if (column.getHeaderValue().toString().equals("Summary")) {
@@ -629,7 +642,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		return dataModel;
 	}
 	/**
-	 * 
+	 * Set default table model with 'Title' and 'Summary' column headers<br>
 	 * @param messages
 	 * @return
 	 */
@@ -637,6 +650,30 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		String[] colHeader = {"Title", "Summary"};
 		return setTable(colHeader, messages);
 	}
+	
+	///////////////////////////////////////////////////////////STATUS BAR////////////////////////////////////////////////////////////////////////////
+	/**
+	 * If URL could not be found, call method with URL included<br>
+	 * @param b
+	 * @param url
+	 */
+	private void updateStatusBar(boolean b, String Text) {
+		if (!b){
+			lblStatusBar.setText(Text);
+		}
+		else{
+			lblStatusBar.setText("");
+		}
+	}
+	
+	/**
+	 * Reset status bar if request is successful<br>
+	 * @param b
+	 */
+	private void updateStatusBar(boolean b){
+		updateStatusBar(b, "");
+	}
+	///////////////////////////////////////////////////////////////SEARCH PAGINATION (and status of pagination)////////////////////////////////////////////////////////////
 	/**
 	 * Enable and disable previous and next buttons<Br>
 	 * @param start
@@ -666,7 +703,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
     }
 	
 	/**
-	 * 
+	 * Set buttons for pagination on first search query<br>
 	 * @param start
 	 * @param numResults
 	 * @param totalResults
@@ -675,7 +712,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		setPrevNextButtons(Integer.parseInt(start), numResults, Integer.parseInt(totalResults));
 	}
 	/**
-	 * Update label
+	 * Update label showing how many results returned and current set showing<br>
 	 * @param start
 	 * @param numResults
 	 * @param totalResults
@@ -703,21 +740,38 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		updateResultLabel(Integer.parseInt(start), numResults, Integer.parseInt(totalResults));
 	}
 	
+	//////////////////////////////////////////////////DATABASE REQUESTS///////////////////////////////////////////////////////////////////
+	
+	private void searchHistoryInstert(){
+		int rowsReturned = GUIcon.createSearchInsert(keywords, GUIcon.getFeed());
+		if(DEBUG) System.out.println("Rows Returned: " + rowsReturned);
+	}
 	
 	
+	
+	
+	
+	
+	
+	///////////////////////////////////////////////////ACTION LISTENER//////////////////////////////////////////////////////////////////////
 	/**
 	 * Action Listener for all buttons on search panel<br>
 	 */
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnSearch){ // Search button actions
 			keywords = txtSearchQuery.getText();
-			start = 0;
-			numResults = Integer.parseInt(btnGroupNumResults.getSelection().getActionCommand());
-			searchsource = Integer.parseInt(btnGroupSearch.getSelection().getActionCommand());
-			sort = Integer.parseInt(btnGroupSort.getSelection().getActionCommand());
-			contentFilter = Integer.parseInt(btnGroupFilter.getSelection().getActionCommand());
-			search(start, keywords, numResults, sort, contentFilter, searchsource);
-			
+			if (keywords.length() <= 3){
+				updateStatusBar(false, "Please enter at least 3 characters to search.");
+			}
+			else{
+				updateStatusBar(true);
+				start = 0;
+				numResults = Integer.parseInt(btnGroupNumResults.getSelection().getActionCommand());
+				searchsource = Integer.parseInt(btnGroupSearch.getSelection().getActionCommand());
+				sort = Integer.parseInt(btnGroupSort.getSelection().getActionCommand());
+				contentFilter = Integer.parseInt(btnGroupFilter.getSelection().getActionCommand());
+				search(start, keywords, numResults, sort, contentFilter, searchsource);
+			}
 		}
 		else if (e.getSource() == btnNext){ // Next button actions
 			start += 50;
@@ -743,11 +797,12 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		
 		
 	}
+	//////////////////////////////////////////////////////////////////////////KEY PRESSED LISTENER////////////////////////////////////////////////////////////////
 	/**
 	 * 
 	 */
 	public void keyPressed(KeyEvent e) {
-		System.out.println(e.getKeyCode());
+		if(DEBUG) System.out.println(e.getKeyCode());
 		//if (e.getKeyCode() == 32 || e.getKeyCode() == 10){ // Check for space bar or enter key - does same as btnViewEpisodes
 			//int selectedResult = resultsTable.getSelectedRow();
 			//if (selectedResult >= 0){

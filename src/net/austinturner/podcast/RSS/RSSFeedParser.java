@@ -58,6 +58,7 @@ public class RSSFeedParser {
 	private String startIndex = "podcastSearch:startIndex";
 	private String itemsPerPage = "podcastSearch:itemsPerPage";
 		
+	private final boolean DEBUG = false;
 	  
 	/**
 	 * 

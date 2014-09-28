@@ -23,13 +23,14 @@ public class RSSFeed {
 	private String name;
 	private String email;
 	private String category;
-	
-	//Still need to figure these out (only exist on main API search, maybe have flag or alternate constructor)
+	private String folderName = "";
 	private String totalResults = "";
 	private String startIndex = "";
 	private String itemsPerPage = "";
 	
 	final List<RSSFeedMessage> entries = new ArrayList<RSSFeedMessage>();
+	
+	final boolean DEBUG = true; 
 	
 	/**
 	 * 
@@ -54,6 +55,21 @@ public class RSSFeed {
 		this.name = name;
 		this.email = email;
 		this.category = category;
+		if(DEBUG){
+			System.out.println("title: " + title);
+			System.out.println("link: " + link);
+			System.out.println("description: " + description);
+			System.out.println("pubDate: " + pubDate);
+			System.out.println("language: " + language);
+			System.out.println("image: " + image);
+			System.out.println("author: " + author);
+			System.out.println("copyright: " + copyright);
+			System.out.println("subtitle: " + subtitle);
+			System.out.println("summary: " + summary);
+			System.out.println("name: " + name);
+			System.out.println("email: " + email);
+			System.out.println("category: " + category);
+		}
 	}
 	public List<RSSFeedMessage> getMessages(){
 		return entries;
@@ -154,6 +170,19 @@ public class RSSFeed {
 	}
 	public void setCategory(String category) {
 		this.category = category;
+	}
+	public String getFolderName() {
+		//Make sure foldername is set, and set to title if it is not set
+		if (folderName.equals("")){
+			folderName = title;
+		}
+		return folderName;
+	}
+	public void setFolderName(String folderName) {
+		String f = folderName.trim();
+		f = folderName.replaceAll("[^a-zA-Z0-9_.!-]", "_");
+		if(DEBUG) System.out.println(f);
+		this.folderName = f;
 	}
 
 	
