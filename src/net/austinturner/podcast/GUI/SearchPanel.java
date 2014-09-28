@@ -48,6 +48,7 @@ import java.util.List;
 import javax.swing.JTable;
 import javax.swing.ImageIcon;
 
+import net.austinturner.podcast.GUI.helper.GUIconnector;
 import net.austinturner.podcast.RSS.RSSFeed;
 import net.austinturner.podcast.RSS.RSSFeedMessage;
 
@@ -125,13 +126,14 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 	
 	private final boolean DEBUG = true;
 	private JLabel lblDownloadStatus;
-	
+	private JLabel lblDownloadsInProgress;
+	private int numDownloads = 0;
 	/**
 	 * Create the panel.
 	 */
-	public SearchPanel(String APIKey) {
-		this.APIKey = APIKey;
-		setBounds(10, 50, 1331, 712);
+	public SearchPanel(GUIconnector GUIcon) {
+		this.GUIcon = GUIcon;
+		setBounds(10, 50, 1361, 711);
 		setLayout(null);
 		
 		lblKeywordSearch = new JLabel("Search Query:");
@@ -349,7 +351,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		resultsScrollPane.setViewportBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0, 0, 0)));
 		resultsScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		resultsScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		resultsScrollPane.setBounds(506, 21, 815, 632);
+		resultsScrollPane.setBounds(506, 21, 845, 632);
 		add(resultsScrollPane);
 		
 		resultsTable = new JTable();
@@ -399,7 +401,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		btnNext = new JButton("Next");
 		btnNext.addActionListener(this);
 		btnNext.setEnabled(false);
-		btnNext.setBounds(1232, 655, 89, 23);
+		btnNext.setBounds(1262, 655, 89, 23);
 		add(btnNext);
 		
 		btnDownload = new JButton("Download");
@@ -410,7 +412,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		
 		lblStatusBar = new JLabel("");
 		lblStatusBar.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		lblStatusBar.setBounds(0, 689, 1331, 23);
+		lblStatusBar.setBounds(0, 689, 1061, 23);
 		lblStatusBar.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		add(lblStatusBar);
 		
@@ -418,6 +420,12 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		lblDownloadStatus.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblDownloadStatus.setBounds(10, 655, 300, 23);
 		add(lblDownloadStatus);
+		
+		lblDownloadsInProgress = new JLabel("");
+		lblDownloadsInProgress.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		lblDownloadsInProgress.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+		lblDownloadsInProgress.setBounds(1061, 689, 300, 23);
+		add(lblDownloadsInProgress);
 	}
 
 	
@@ -436,7 +444,6 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 			 public void run() {	
 				 try {
 						updateStatusBar(false, "Searching...");
-						GUIcon = new GUIconnector(APIKey);
 						GUIcon.setParameters(keywords, numResults, sort, contentFilter, searchsource, start);
 						GUIcon.getFeed().setFolderName("");
 						searchHistoryInstert();
@@ -505,23 +512,29 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 			// Spin up new thread to complete the download
 			Thread downloadThread = new Thread(){
 				 public void run() {
-					 String feedName = GUIcon.getFeed().getFolderName(); //TODO titles are jacked up sometimes
+					 String feedName = GUIcon.getFeed().getFolderName();
 					 Boolean newFolder = (new File("PodcastLibrary/" + feedName)).mkdir();
 						try {
 							URL website;
-							String filesize = "";
+							String fileSize = "";
 							website = new URL(GUIcon.getMessages().get(resultsTable.getSelectedRow()).getUrl());
-							String filename = website.toString().substring(website.toString().lastIndexOf('/')+1, website.toString().length());
-							if(DEBUG)System.out.println("Filename: " + filename);
+							String fileName = website.toString().substring(website.toString().lastIndexOf('/')+1, website.toString().length());
+							if(DEBUG)System.out.println("Filename: " + fileName);
 							if (!GUIcon.getMessages().get(resultsTable.getSelectedRow()).getLength().equals("")){
 								double fs = Integer.parseInt((GUIcon.getMessages().get(resultsTable.getSelectedRow()).getLength())) / 1000000.0;
-								filesize = "(" + (Double.toString(fs).substring(0, (Double.toString(fs).indexOf('.') + 3))) + " MB)"; // Get truncated 2 decimal point size of file
+								fileSize = "(" + (Double.toString(fs).substring(0, (Double.toString(fs).indexOf('.') + 3))) + " MB)"; // Get truncated 2 decimal point size of file
 							}
-							lblDownloadStatus.setText("Download Started.... ("+filesize+" MB)");
-							ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-							FileOutputStream fos = new FileOutputStream("PodcastLibrary/" + feedName + "/"+ filename);
-							fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-							lblDownloadStatus.setText("Download successful!");
+							lblDownloadStatus.setText("Download Started.... "+fileSize);
+							numDownloads ++;
+							lblDownloadsInProgress.setText(numDownloads + " in progress");
+							numDownloads = GUIcon.downloadEpisode(website, feedName, fileName, fileSize);
+							if (numDownloads == 0){ // remove text from download status if all downloads have finished
+								lblDownloadStatus.setText("");
+								lblDownloadsInProgress.setText("Downloads finished");
+							}else{
+								lblDownloadsInProgress.setText(numDownloads + " downloads in progress");
+							}
+							
 						} catch (MalformedURLException e) {
 							lblDownloadStatus.setText("Episode could not be found. URL: " + GUIcon.getMessages().get(resultsTable.getSelectedRow()).getUrl());
 							if(DEBUG)e.printStackTrace();

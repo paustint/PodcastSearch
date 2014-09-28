@@ -1,11 +1,16 @@
-package net.austinturner.podcast.GUI;
+package net.austinturner.podcast.GUI.helper;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import net.austinturner.podcast.RSS.RSSFeed;
 import net.austinturner.podcast.RSS.RSSFeedMessage;
@@ -22,6 +27,9 @@ public class GUIconnector {
 	private Map<String, String[]> sqlValues = new HashMap<>();
 	private ArrayList<String> sqlColumns = new ArrayList<String>();
 	private final String DB_SEARCH = "SEARCH_HISTORY";
+	private ExecutorService pool;
+	
+	private int downloadCount = 0;
 	
 	private final boolean DEBUG = true;
 	
@@ -30,14 +38,16 @@ public class GUIconnector {
 	 * @param APIkey
 	 * @throws Exception
 	 */
-	public GUIconnector(String APIkey) throws Exception{
-			dp = new DigitalPodcast(APIkey);
-			dp.setFormat(2);
-			setDBCon();// Create connection to DB
+	public GUIconnector(String APIkey, ExecutorService pool) throws Exception{
+		this.pool = pool;
+		dp = new DigitalPodcast(APIkey);
+		dp.setFormat(2);
+		setDBCon();// Create connection to DB
 	}
 	public static DigitalPodcast getActiveDP(){
 		return dp;
 	}
+	/////////////////////////////////////////////////////////////////////////GET FEED AND MESSAGES///////////////////////////////////////////////////////////////////
 	
 	/**
 	 * Get Feed
@@ -63,6 +73,7 @@ public class GUIconnector {
 		return messages.subList(start, numResults+1);
 	}
 	
+	////////////////////////////////////////////////////////////////////////////NEW QUERIES///////////////////////////////////////////////////////////////////////////
 	/**
 	 * Set all parameters to submit query<br>
 	 * This query connects to DigitalPodcast Service, not individual RSS feeds<br>
@@ -127,11 +138,48 @@ public class GUIconnector {
 			debug();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if(DEBUG) e.printStackTrace();
 		}
 	}
+	////////////////////////////////////////////////////////////////////DOWNLOAD RELATED//////////////////////////////////////////////////////////////////////
 	
-	///////////////////////////////////////SQLite DB Methods////////////////////////////////////////////////////////
+
+	/**
+	 * Download Podcast Episode<br>
+	 * @param website
+	 * @param feedName
+	 * @param fileName
+	 * @param fileSize
+	 * @return number of downloads in progress
+	 */
+	public int downloadEpisode(URL website, String feedName, String fileName, String fileSize){
+		 Future f = pool.submit(new DownloadTask(website, feedName, fileName, fileSize), this);
+		 downloadCount ++;
+		 if(DEBUG) System.out.println("Downloads in progress: " + downloadCount);
+		 while(!f.isDone()){ // Keep looping until download has finished
+		 }
+		 System.out.println("done");
+		 downloadCount --;
+		 if(DEBUG) System.out.println("Downloads in progress: " + downloadCount);
+		 return downloadCount;
+	}
+	
+	public int checkDownloadStatus(){
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	///////////////////////////////////////////////////////////////////Subscription Related////////////////////////////////////////////////////////////////////
+	
+	
+	
+	
+	
+	////////////////////////////////////////////////////////////////////SQLite DB Methods//////////////////////////////////////////////////////////////////////
 	/**
 	 * Create instance of SQLite and connect to DB<Br>
 	 * @return
@@ -199,7 +247,7 @@ public class GUIconnector {
 		return executSearchSQL();
 	}
 	
-	//////////////////////////////////////////////////DEBUG/////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////DEBUG//////////////////////////////////////////////////////////////////
 	/**
 	 * Debug function
 	 * @param query

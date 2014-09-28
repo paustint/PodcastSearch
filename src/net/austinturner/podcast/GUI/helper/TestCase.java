@@ -1,4 +1,4 @@
-package net.austinturner.podcast.GUI;
+package net.austinturner.podcast.GUI.helper;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;

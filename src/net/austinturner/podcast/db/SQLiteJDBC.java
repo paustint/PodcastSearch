@@ -32,7 +32,7 @@ public class SQLiteJDBC
      */
     public SQLiteJDBC() throws ClassNotFoundException, SQLException{
 		Class.forName("org.sqlite.JDBC");
-		c = DriverManager.getConnection("jdbc:sqlite:test.db");
+		c = DriverManager.getConnection("jdbc:sqlite:DigitalPodcastSearch.db");
 		c.setAutoCommit(false);
 		if(DEBUG) System.out.println("Opened database successfully");
     }
