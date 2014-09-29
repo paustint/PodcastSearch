@@ -68,6 +68,10 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 	private JLabel lblSort;
 	private JLabel lblSearchOptions;
 	private JLabel lblFilterOptions;
+	private JLabel lblResultsMessage;
+	private JLabel lblImage;
+	private JLabel lblStatusBar;
+	
 	private JTextField txtSearchQuery;
 	private JRadioButton radioResults10;
 	private JRadioButton rdbtnResults20;
@@ -97,31 +101,34 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 	private JPanel borderSearchOptions;
 	private JPanel borderSort;
 	private JPanel borderNumResults;
+	private JScrollPane resultsScrollPane;
+	
+	
+
 	private JButton btnSearch;
+	private JButton btnViewEpisodes;
+	private JButton btnSubscribe;
+	private JButton btnListen;
+	private JButton btnDownload;
+
+	private TableModel dataModel;
+	private JButton btnPrevious;
+	private JButton btnNext;
 	
 	private String APIKey;
 	private JPanel panel;
 	private GUIconnector GUIcon;
 	private JTable resultsTable;
-	private JLabel lblResultsMessage;
-	private JLabel lblImage;
-	private JButton btnViewEpisodes;
-	private JButton btnSubscribe;
-	private JButton btnListen;
-	private JScrollPane resultsScrollPane;
-	private TableModel dataModel;
-	private JButton btnPrevious;
-	private JButton btnNext;
 	
 	//Items used for query
 	private int start = 0;
-	int numResults = 0;
-	int searchsource = 0;
-	int sort = 0;
-	int contentFilter = 0;
-	String keywords = "";
-	private JButton btnDownload;
-	private JLabel lblStatusBar;
+	private int numResults = 0;
+	private int searchsource = 0;
+	private int sort = 0;
+	private int contentFilter = 0;
+	private String keywords = "";
+
+
 	
 	
 	private final boolean DEBUG = true;
@@ -376,18 +383,21 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		add(lblImage);
 		
 		btnViewEpisodes = new JButton("View Episodes");
+		btnViewEpisodes.setEnabled(false);
 		btnViewEpisodes.addActionListener(this);
 		btnViewEpisodes.setFont(new Font("Aharoni", Font.PLAIN, 16));
 		btnViewEpisodes.setBounds(320, 404, 176, 40);
 		add(btnViewEpisodes);
 		
 		btnSubscribe = new JButton("Subscribe");
+		btnSubscribe.setEnabled(false);
 		btnSubscribe.addActionListener(this);
 		btnSubscribe.setFont(new Font("Aharoni", Font.PLAIN, 16));
 		btnSubscribe.setBounds(320, 455, 176, 40);
 		add(btnSubscribe);
 		
 		btnListen = new JButton("Listen");
+		btnListen.setEnabled(false);
 		btnListen.addActionListener(this);
 		btnListen.setFont(new Font("Aharoni", Font.PLAIN, 16));
 		btnListen.setBounds(320, 506, 176, 40);
@@ -406,6 +416,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		add(btnNext);
 		
 		btnDownload = new JButton("Download");
+		btnDownload.setEnabled(false);
 		btnDownload.addActionListener(this);
 		btnDownload.setFont(new Font("Aharoni", Font.PLAIN, 16));
 		btnDownload.setBounds(320, 557, 176, 40);
@@ -458,6 +469,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 						updateResultLabel(GUIcon.getFeed().getStartIndex(), numResults, GUIcon.getFeed().getTotalResults());
 						setPrevNextButtons(GUIcon.getFeed().getStartIndex(), numResults, GUIcon.getFeed().getTotalResults());
 						updateStatusBar(true);
+						updateButtons(true, false, false, false);
 					} catch (Exception e) {
 						updateStatusBar(false, "Search was not successful.");
 						e.printStackTrace();
@@ -494,6 +506,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 								updateResultLabel(0, GUIcon.getMessages().size(), GUIcon.getMessages().size());
 								setPrevNextButtons(0, GUIcon.getMessages().size(), GUIcon.getMessages().size());
 								updateStatusBar(true);
+								updateButtons(true, true, true, true);
 							} else{
 								updateStatusBar(false, "Episode could not be found. URL: " + GUIcon.getMessages().get(selectedResult).getUrl());
 							}
@@ -691,7 +704,22 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 	private void updateStatusBar(boolean b){
 		updateStatusBar(b, "");
 	}
-	///////////////////////////////////////////////////////////////SEARCH PAGINATION (and status of pagination)////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////BUTTONS AND SEARCH PAGINATION (and status of pagination)///////////////////////////////////////////////////////
+	/**
+	 * This method enables and disables buttons depending on state of search and program<br>
+	 * This relies on calls from other events, such as those happening from action listener<br>
+	 * @param viewEpisode
+	 * @param subscribe
+	 * @param listen
+	 * @param download
+	 */
+	private void updateButtons(boolean viewEpisode, boolean subscribe, boolean listen, boolean download){
+		btnViewEpisodes.setEnabled(viewEpisode);
+		btnSubscribe.setEnabled(subscribe);
+		btnListen.setEnabled(listen);
+		btnDownload.setEnabled(download);
+	}
+	
 	/**
 	 * Enable and disable previous and next buttons<Br>
 	 * @param start
@@ -782,6 +810,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 				updateStatusBar(false, "Please enter at least 3 characters to search.");
 			}
 			else{
+				
 				updateStatusBar(true);
 				start = 0;
 				numResults = Integer.parseInt(btnGroupNumResults.getSelection().getActionCommand());
@@ -805,6 +834,7 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 		else if (e.getSource() == btnViewEpisodes){ // User has selected an entry
 			int selectedResult = resultsTable.getSelectedRow();
 			if (selectedResult >= 0){
+				
 				viewEpisode(selectedResult);
 			}
 		}
@@ -812,9 +842,9 @@ public class SearchPanel extends JPanel implements ActionListener, KeyListener {
 			downloadEpisode();
 		}
 
-		
-		
 	}
+
+	
 	//////////////////////////////////////////////////////////////////////////KEY PRESSED LISTENER////////////////////////////////////////////////////////////////
 	/**
 	 * 

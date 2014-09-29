@@ -81,6 +81,8 @@ public class PodcastGUI {
 				try {
 					PodcastGUI window = new PodcastGUI(APIKey);
 					window.frame.setVisible(true);
+					//TODO fire off to tell subscriptions to update (based on settings) and update library tree to update
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -116,14 +118,14 @@ public class PodcastGUI {
 			tabbedPane.addTab("Search", null, searchPanel, null);
 			frame.getRootPane().setDefaultButton(searchPanel.getSearchButton()); // allows enter button to be mapped to search button
 			
+			subscriptionPanel = new SubscriptionPanel(GUIcon);
+			tabbedPane.addTab("Subscriptions", null, subscriptionPanel, null);
+			
 			downloadPanel = new DownloadPanel(GUIcon);
 			tabbedPane.addTab("Downloads", null, downloadPanel, null);
 			
 			libraryPanel = new LibraryPanel(GUIcon);
 			tabbedPane.addTab("Library", null, libraryPanel, null);
-			
-			subscriptionPanel = new SubscriptionPanel(GUIcon);
-			tabbedPane.addTab("Subscriptions", null, subscriptionPanel, null);
 			
 			menuBar = new JMenuBar();
 			menuBar.setFont(new Font("Aharoni", Font.PLAIN, 14));
